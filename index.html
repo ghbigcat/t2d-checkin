@@ -104,6 +104,22 @@ table.moves td.cue{color:var(--ink2);font-size:12.5px;}
 .callout{background:var(--amber-soft);border-radius:12px;padding:11px 14px;font-size:12.5px;color:#6B3410;margin-top:12px;}
 .callout b{color:#7C2D12;}
 
+/* collapsible extra block */
+details.rx-more{border-top:1px solid var(--hair);padding-top:14px;margin-top:14px;}
+details.rx-more>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-text);
+  -webkit-tap-highlight-color:transparent;}
+details.rx-more>summary::-webkit-details-marker{display:none;}
+details.rx-more>summary::before{content:"▸";font-size:12px;color:var(--accent-text);transition:transform .15s;display:inline-block;}
+details.rx-more[open]>summary::before{transform:rotate(90deg);}
+details.rx-more>summary .cnt{font-family:var(--font);font-size:11.5px;letter-spacing:0;text-transform:none;color:var(--mute);}
+details.rx-more .more-body{padding-top:12px;}
+details.rx-more .more-body .rx-note{margin-bottom:8px;}
+@media(max-width:700px){
+  details.rx-more table.moves td.name{white-space:nowrap;}
+  details.rx-more table.moves td.dose{display:none;}
+}
+
 /* grid */
 .grid-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:10px;}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--mute);align-items:center;}
@@ -431,6 +447,28 @@ var RECOVER = {
          "作为固定恢复日，重点在缓解紧绷与评估下周体能"]
 };
 
+var SEATED = {
+  title:"坐姿 8 动作循环",
+  dur:"40″ × 8",
+  total:"约 6–7 分钟",
+  prep:"饭后稍作休息后开始。坐在稳固、不带滑轮的椅子上，腰背挺直，上半身尽量保持稳定，按自己的节奏完成，不追求幅度和速度。",
+  items:[
+    { n:1, name:"脚掌拍地", cue:"脚跟固定不动，双脚前脚掌一起上下拍打地面，落地轻柔，保持节奏" },
+    { n:2, name:"原地踮脚", cue:"双脚并拢，缓慢踮起脚尖停留 1 秒，再缓慢落下，保持节奏" },
+    { n:3, name:"交替抬腿", cue:"双手扶椅面，左右腿交替，小腿向前水平抬起再缓慢放下，脚不落地" },
+    { n:4, name:"交替踏步", cue:"坐稳，双脚离地或轻触地面，小腿交替向前上方抬起踏步，抬腿不用很高" },
+    { n:5, name:"双腿开合", cue:"双脚并拢，缓慢向两侧打开，再收回并拢，保持节奏" },
+    { n:6, name:"并腿踏步", cue:"双脚并拢，双腿一起小幅上下踏步，脚掌轻点地面" },
+    { n:7, name:"右腿空蹬", cue:"双手扶稳，右腿抬起，像骑自行车一样缓慢空中蹬腿" },
+    { n:8, name:"左腿空蹬", cue:"双手扶稳，左腿抬起，同样缓慢空中蹬腿" }
+  ],
+  safe:[
+    "椅子必须稳固、不滑动，最好靠墙或靠桌；上半身不要前后晃动借力",
+    "出现头晕、心慌、胸闷或膝踝疼痛，立即停下，当天改为单纯休息",
+    "小腿或脚踝明显发胀、按压有凹陷，当天不做，并记到卡点"
+  ]
+};
+
 /* ---------- render: today ---------- */
 function renderToday(){
   var t = todayKey();
@@ -518,6 +556,25 @@ function streak(){
 }
 
 /* ---------- render: prescription ---------- */
+function seatedBlock(open, note){
+  var h = '<details class="rx-more"' + (open ? ' open' : '') + '>' +
+    '<summary>' + SEATED.title + ' <span class="cnt">' + SEATED.dur + ' · ' + SEATED.total + '</span></summary>' +
+    '<div class="more-body">' +
+    '<p class="rx-note">' + note + '</p>' +
+    '<p class="rx-note" style="color:var(--mute);font-size:12.5px">' + SEATED.prep + '</p>' +
+    '<table class="moves"><thead><tr><th></th><th>动作</th><th>时长</th><th>要点</th></tr></thead><tbody>';
+  SEATED.items.forEach(function(m){
+    h += '<tr><td class="n">' + m.n + '</td><td class="name">' + m.name +
+      '</td><td class="dose">40″</td><td class="cue">' + m.cue + '</td></tr>';
+  });
+  h += '</tbody></table>' +
+    '<p class="rx-note" style="margin-top:12px">每个动作 40 秒，动作之间换姿歇 10–15 秒；整套做完再原地慢走 1–2 分钟降心率。</p>' +
+    '<ul class="rx-list">';
+  SEATED.safe.forEach(function(x){ h += '<li>' + x + '</li>'; });
+  h += '</ul></div></details>';
+  return h;
+}
+
 function renderRx(t, inRange){
   var tag = document.getElementById("rxTag");
   var hint = document.getElementById("rxHint");
@@ -537,7 +594,7 @@ function renderRx(t, inRange){
 
   tag.textContent = "第" + wk + "周 · 阶段 " + stage.n;
   if(k === "recover"){
-    hint.textContent = "柔韧 15′ + 平衡与自查 5′。不追求出汗或心率提升，重点在缓解紧绷与评估下周体能。";
+    hint.textContent = "柔韧 15′ + 平衡与自查 5′。不追求出汗或心率提升，重点在缓解紧绷与评估下周体能。也可整套换成下方的坐姿 8 动作循环。";
   }else{
     hint.textContent = "热身 5′ + 主练 20′ + 拉伸 5′ = 30′。均安排在晚餐后 30–60 分钟。";
   }
@@ -561,6 +618,7 @@ function renderRx(t, inRange){
       '<li><b>拉伸 5′</b>：大腿前后侧、胸肩、小腿各 20–30 秒</li>' +
       '<li><b>RPE 5–6/10</b>：还能多做 2–3 次但已明显酸胀</li>' +
       '</ul></div>';
+    html += seatedBlock(false, "久坐超过 60 分钟时做 1 轮当打断，不替代当日抗阻训练。");
   }else if(k === "cardio"){
     var c = CARDIO[wd];
     html += '<div class="rx-block"><div class="rx-title">' + c.title + '</div>' +
@@ -572,11 +630,13 @@ function renderRx(t, inRange){
         '5′ 热身 → 10 组间歇（30″ 高抬膝快步走/快速踏步/快速直拳，RPE 7–8/10 + 60″ 慢走恢复）共 15′ → 5′ 降心率慢走 + 5′ 拉伸。' +
         '仅在前 4 周适应良好、无关节不适时启用，且必须在晚餐后、非空腹。</div>';
     }
+    html += seatedBlock(false, "天气不好、膝踝不适或体力偏低时，用它替代当天的有氧主练；也可作为餐后等血糖回落时的低强度选项。");
   }else{
     html += '<div class="rx-block"><div class="rx-title">' + RECOVER.title + '</div>' +
       '<p class="rx-note"><b>' + RECOVER.main + '</b></p><ul class="rx-list">';
     RECOVER.items.forEach(function(x){ html += '<li>' + x + '</li>'; });
     html += '</ul></div>';
+    html += seatedBlock(true, "今天可以直接用这套坐姿循环作为主练，也可以放在柔韧之后作为补充。");
   }
   body.innerHTML = html;
 }
